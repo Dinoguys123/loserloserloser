@@ -96,27 +96,23 @@
   // Initialize Tone.js Players when the window loads
   window.addEventListener('load', () => {
     // Background Music Player
-    // Ensure 'background_loop.mp3' is in the same directory or provide correct path
     bgMusicPlayer = new Tone.Player({
       url: "background_loop.mp3",
       loop: true,
       volume: -15 // Volume in dB (e.g., -15 is quieter than 0)
-    }).toDestination(); // Connects the player directly to your speakers
+    }).toDestination();
 
     // Click Sound Player
-    // Ensure 'click_sound.mp3' is in the same directory or provide correct path
     clickSoundPlayer = new Tone.Player({
       url: "click_sound.mp3",
       volume: -5 // Volume in dB
     }).toDestination();
 
-    // Optional: Log when sounds are loaded (useful for debugging)
-    Tone.Buffer.on('load', () => {
-      console.log("All audio files loaded successfully using Tone.js!");
-    });
-    Tone.Buffer.on('error', (e) => {
-      console.error("Error loading audio files with Tone.js:", e);
-    });
+    // You can add a single check for when all buffers are loaded if needed,
+    // but individual await player.loaded is generally more robust for specific actions.
+    // Tone.loaded().then(() => {
+    //   console.log("All Tone.js buffers are loaded!");
+    // });
   });
 
   // Function to handle sound playback and text change on button click
@@ -127,21 +123,25 @@
       console.log("Tone.js AudioContext started.");
       audioContextStarted = true;
 
-      // Start background music after context is active and if loaded
-      if (bgMusicPlayer.loaded) {
+      // Start background music only AFTER the context is active and if loaded
+      // It's good practice to ensure the buffer is loaded before trying to start
+      // Although Tone.js often handles this gracefully, explicit await is safer.
+      try {
+        await bgMusicPlayer.loaded; // Wait for background music to load
         bgMusicPlayer.start();
-      } else {
-        await bgMusicPlayer.loaded;
-        bgMusicPlayer.start();
+        console.log("Background music started.");
+      } catch (error) {
+        console.error("Error starting background music:", error);
       }
     }
 
     // Play click sound if loaded
-    if (clickSoundPlayer.loaded) {
-      clickSoundPlayer.stop().start();
-    } else {
-      await clickSoundPlayer.loaded;
-      clickSoundPlayer.stop().start();
+    try {
+      await clickSoundPlayer.loaded; // Wait for click sound to load
+      clickSoundPlayer.stop().start(); // Stop and start to allow re-triggering
+      console.log("Click sound played.");
+    } catch (error) {
+      console.error("Error playing click sound:", error);
     }
 
     // Change the text as before
