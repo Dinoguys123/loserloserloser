@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winner Winner!</title>
+<script src="https://unpkg.com/tone"></script>
+<style>
+  /* --- Global Styles --- */
+  body {
+    background: linear-gradient(to bottom right, #a8e063, #56ab2f); /* Funky green gradient */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Comic Sans MS', cursive, sans-serif; /* A bit more funky font */
+    color: #333;
+    overflow: hidden; /* Prevent scrollbar from rotation */
+  }
+
+  /* --- Centered Content Container --- */
+  .centered-content {
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white for pop */
+    padding: 30px;
+    border-radius: 20px; /* More rounded corners */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Deeper, more playful shadow */
+    text-align: center;
+    outline: 6px dashed #7bed9f; /* Funky dashed green outline */
+    transform: rotate(-3deg); /* Slight rotation for funkiness */
+    transition: transform 0.3s ease-in-out; /* Smooth transition for hover */
+  }
+
+  .centered-content:hover {
+    transform: rotate(0deg) scale(1.02); /* Straighten and slightly enlarge on hover */
+  }
+
+  /* --- Heading Style --- */
+  h1 {
+    color: #28a745; /* Brighter green for heading */
+    font-size: 3em; /* Larger heading */
+    margin-bottom: 25px;
+    text-shadow: 3px 3px #90ee90; /* Funky text shadow */
+  }
+
+  /* --- Paragraph Style --- */
+  p {
+    font-size: 1.8em; /* Larger paragraph text */
+    color: #4CAF50; /* Another shade of green */
+    margin-bottom: 30px;
+    font-weight: bold;
+  }
+
+  /* --- Button Style --- */
+  button {
+    background-color: #28a745; /* Vibrant green button */
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px; /* More rounded button */
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out; /* Smooth transition for hover and active */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Button shadow */
+  }
+
+  button:hover {
+    background-color: #218838; /* Darker green on hover */
+    transform: translateY(-2px); /* Lift button slightly on hover */
+    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  button:active {
+    background-color: #1e7e34; /* Even darker green when pressed */
+    transform: translateY(1px); /* Press down effect */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="centered-content">
+  <h1>Loser Loser Loser</h1>
+  <p id="myText">HAHAHAHAHHAHAHAH</p>
+  <button type="button" onclick="playSoundsAndChangeText()">Win</button>
+</div>
+
+<script>
+  let bgMusicPlayer;
+  let clickSoundPlayer;
+  let audioContextStarted = false; // Flag to track if AudioContext is active
+
+  // Initialize Tone.js Players when the window loads
+  window.addEventListener('load', () => {
+    // Background Music Player
+    // Ensure 'background_loop.mp3' is in the same directory or provide correct path
+    bgMusicPlayer = new Tone.Player({
+      url: "background_loop.mp3",
+      loop: true,
+      volume: -15 // Volume in dB (e.g., -15 is quieter than 0)
+    }).toDestination(); // Connects the player directly to your speakers
+
+    // Click Sound Player
+    // Ensure 'click_sound.mp3' is in the same directory or provide correct path
+    clickSoundPlayer = new Tone.Player({
+      url: "click_sound.mp3",
+      volume: -5 // Volume in dB
+    }).toDestination();
+
+    // Removed the problematic Tone.Buffer.on lines
+    // You already have 'await player.loaded' in playSoundsAndChangeText, which handles waiting
+    // console.log("All audio files loaded successfully using Tone.js!"); // This log is now redundant here
+    // console.error("Error loading audio files with Tone.js:", e); // This error handler is also redundant here
+  });
+
+  // Function to handle sound playback and text change on button click
+  async function playSoundsAndChangeText() {
+    // Start Tone.js AudioContext on the first user interaction
+    // This is required by browsers for Web Audio API to function
+    if (!audioContextStarted) {
+      await Tone.start();
+      console.log("Tone.js AudioContext started.");
+      audioContextStarted = true;
+
+      // Start background music after context is active and if loaded
+      // await ensures the sound is ready before trying to play it
+      try { // Added try-catch for better error handling during loading
+        if (bgMusicPlayer.loaded) {
+          bgMusicPlayer.start();
+        } else {
+          await bgMusicPlayer.loaded; // Wait for buffer to load
+          bgMusicPlayer.start();
+        }
+      } catch (e) {
+        console.error("Failed to start background music:", e);
+      }
+    }
+
+    // Play click sound if loaded
+    try { // Added try-catch for better error handling during loading
+      if (clickSoundPlayer.loaded) {
+        // .stop().start() ensures the sound can be re-triggered quickly
+        clickSoundPlayer.stop().start();
+      } else {
+        // If not loaded yet, wait for it to load, then play
+        await clickSoundPlayer.loaded; // Wait for buffer to load
+        clickSoundPlayer.stop().start();
+      }
+    } catch (e) {
+      console.error("Failed to play click sound:", e);
+    }
+
+
+    // Change the text - this line will now execute after the initial errors are resolved
+    document.getElementById("myText").innerHTML = "Nope! Still a loser.";
+    console.log("Text changed to: Nope! Still a loser."); // Add a log to confirm
+  }
+</script>
+
+</body>
+</html>
