@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Winner Winner!</title>
+<link rel="icon" href="2025_06_01_0vo_Kleki.png" type="image/png">
+
+
 <script src="https://unpkg.com/tone"></script>
 <style>
   /* --- Global Styles --- */
@@ -107,53 +110,42 @@
       volume: -5 // Volume in dB
     }).toDestination();
 
-    // Removed the problematic Tone.Buffer.on lines
-    // You already have 'await player.loaded' in playSoundsAndChangeText, which handles waiting
-    // console.log("All audio files loaded successfully using Tone.js!"); // This log is now redundant here
-    // console.error("Error loading audio files with Tone.js:", e); // This error handler is also redundant here
+    // Optional: Log when sounds are loaded (useful for debugging)
+    Tone.Buffer.on('load', () => {
+      console.log("All audio files loaded successfully using Tone.js!");
+    });
+    Tone.Buffer.on('error', (e) => {
+      console.error("Error loading audio files with Tone.js:", e);
+    });
   });
 
   // Function to handle sound playback and text change on button click
   async function playSoundsAndChangeText() {
     // Start Tone.js AudioContext on the first user interaction
-    // This is required by browsers for Web Audio API to function
     if (!audioContextStarted) {
       await Tone.start();
       console.log("Tone.js AudioContext started.");
       audioContextStarted = true;
 
       // Start background music after context is active and if loaded
-      // await ensures the sound is ready before trying to play it
-      try { // Added try-catch for better error handling during loading
-        if (bgMusicPlayer.loaded) {
-          bgMusicPlayer.start();
-        } else {
-          await bgMusicPlayer.loaded; // Wait for buffer to load
-          bgMusicPlayer.start();
-        }
-      } catch (e) {
-        console.error("Failed to start background music:", e);
+      if (bgMusicPlayer.loaded) {
+        bgMusicPlayer.start();
+      } else {
+        await bgMusicPlayer.loaded;
+        bgMusicPlayer.start();
       }
     }
 
     // Play click sound if loaded
-    try { // Added try-catch for better error handling during loading
-      if (clickSoundPlayer.loaded) {
-        // .stop().start() ensures the sound can be re-triggered quickly
-        clickSoundPlayer.stop().start();
-      } else {
-        // If not loaded yet, wait for it to load, then play
-        await clickSoundPlayer.loaded; // Wait for buffer to load
-        clickSoundPlayer.stop().start();
-      }
-    } catch (e) {
-      console.error("Failed to play click sound:", e);
+    if (clickSoundPlayer.loaded) {
+      clickSoundPlayer.stop().start();
+    } else {
+      await clickSoundPlayer.loaded;
+      clickSoundPlayer.stop().start();
     }
 
-
-    // Change the text - this line will now execute after the initial errors are resolved
+    // Change the text as before
     document.getElementById("myText").innerHTML = "Nope! Still a loser.";
-    console.log("Text changed to: Nope! Still a loser."); // Add a log to confirm
   }
 </script>
 
